@@ -3,6 +3,28 @@ package com.example.Utils
 import com.example.models.*
 
 object GameUtils {
+    //todo: move mutableListOf calls to extension funs on BoardSpot
+    fun setPiecesForWhite(): Pieces {
+        val pieces: Pieces = mutableMapOf()
+        pieces[Piece.P] = mutableListOf(BoardSpot.a2,BoardSpot.b2,BoardSpot.c2,BoardSpot.d2,BoardSpot.e2,BoardSpot.f2,BoardSpot.g2,BoardSpot.h2)
+        pieces[Piece.R] = mutableListOf(BoardSpot.a1, BoardSpot.h1)
+        pieces[Piece.N] = mutableListOf(BoardSpot.b1, BoardSpot.g1)
+        pieces[Piece.B] = mutableListOf(BoardSpot.c1, BoardSpot.f1)
+        pieces[Piece.K] = mutableListOf(BoardSpot.e1)
+        pieces[Piece.Q] = mutableListOf(BoardSpot.d1)
+        return pieces
+    }
+    fun setPiecesForBlack(): Pieces {
+        val pieces: Pieces = mutableMapOf()
+        pieces[Piece.P] = mutableListOf(BoardSpot.a7,BoardSpot.b7,BoardSpot.c7,BoardSpot.d7,BoardSpot.e7,BoardSpot.f7,BoardSpot.g7,BoardSpot.h7)
+        pieces[Piece.R] = mutableListOf(BoardSpot.a8, BoardSpot.h8)
+        pieces[Piece.N] = mutableListOf(BoardSpot.b8, BoardSpot.g8)
+        pieces[Piece.B] = mutableListOf(BoardSpot.c8, BoardSpot.f8)
+        pieces[Piece.K] = mutableListOf(BoardSpot.e8)
+        pieces[Piece.Q] = mutableListOf(BoardSpot.d8)
+        return pieces
+    }
+
     fun setBoard(): Board {
         val board: Board = mutableMapOf()
         for (spot in BoardSpot.entries) {
@@ -144,8 +166,9 @@ object GameUtils {
         return false
     }
 
-    private fun isKingInCheck(game: Game): Boolean = try { game.moves.last().isCheck } catch (e: Exception) { false }
+    private fun isKingInCheck(game: Game): Boolean = try { game.chessBoard.moves.last().isCheck } catch (e: Exception) { false }
 
+    // NOTE: Make sure you aren't passing a draw or checkmate
     private fun willKingBeInCheckWithThisMove(game: Game, move: Move): Boolean {
         move.destinationSpot?.let {
             /* todo: figure out this logic for determining if the piece being moved (king included) puts the king under attack.
@@ -160,6 +183,26 @@ object GameUtils {
             *          if the move is valid. get the pieces from the other player and determine if any can now put the king in check
             *          if so return false, if not return true.
             * */
+            if (move.number % 2 == 0) {
+                // blacks move
+                if (move.isCastlingKingSide || move.isCastlingQueenSide) {
+                    // trying to move the king
+                } else {
+                    // moving another piece
+                }
+            } else {
+                // whites move
+                if (move.isCastlingKingSide || move.isCastlingQueenSide) {
+                    // trying to move the king
+                } else {
+                    // moving another piece
+                    // check to see if it's a piece moving from the 6 possible squares around a king. if so check to make sure the king is not being attacked now.
+                    val pieceGettingMoved = move.piece ?: return false
+                    val pieceGettingMovedSpot = game.chessBoard.board.find(pieceGettingMoved) ?: return false
+
+
+                }
+            }
         }
         return false
     }
