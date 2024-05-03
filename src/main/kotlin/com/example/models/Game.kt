@@ -26,7 +26,11 @@ data class ChessBoard (
     val whitePieces: Pieces = GameUtils.setPiecesForWhite(),
     val blackPieces: Pieces = GameUtils.setPiecesForBlack(),
     var moves: Moves = ArrayDeque()
-)
+) {
+    // helpers for validating castling (can't castle after moving king)
+    val hasMovedWhiteKing: Boolean = false
+    val hasMovedBlackKing: Boolean = false
+}
 
 fun Board.find(piece: Piece): BoardSpot? {
     this.keys.forEach {
@@ -53,6 +57,7 @@ fun Pieces.squaresAttackedBy(piece: Piece, at: BoardSpot, isWhitePiece: Boolean 
             val row = at.row()
             val file = at.file()
 
+            // todo: change this to map over BoardSpot.files
             val spotsOnRow = mutableSetOf (
                 BoardSpot.construct(row, "a"),
                 BoardSpot.construct(row, "b"),
@@ -64,6 +69,7 @@ fun Pieces.squaresAttackedBy(piece: Piece, at: BoardSpot, isWhitePiece: Boolean 
                 BoardSpot.construct(row, "h")
             ).filterNotNull().toMutableSet()
 
+            // todo: change this to loop
             val spotsOnFile = mutableSetOf (
                 BoardSpot.construct(1, file),
                 BoardSpot.construct(2, file),

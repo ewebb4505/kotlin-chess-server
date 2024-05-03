@@ -130,31 +130,7 @@ object GameUtils {
             }
         } else {
             if (move.isCastlingKingSide) {
-                /* RULES OF THE KING SIDE CASTLE
-                *   1. You can not castle if the king has already moved or if the rook in question has moved
-                *   2. You can not castle if while in check.
-                *   3. you can castle with a rook that is under attack at the time and the rook can pass through an attacked square when castling while the king can not.
-                *  */
 
-                val kingsCurrentSpot = board.find(Piece.K)
-                if (kingsCurrentSpot == null) {
-                    return false
-                }
-
-                // check to make sure king is at initial spot, bishop and knight have moved, and rook is still there
-                if (kingsCurrentSpot == BoardSpot.e1
-                    && board[BoardSpot.f1] == null
-                    && board[BoardSpot.g1] == null
-                    && board[BoardSpot.h1] == Piece.R) {
-                    // next make sure the king isn't in check or will be moved to a spot that is being attacked.
-                    // todo: need the move stack from a game to see if last move was a check.
-                    if (!isKingInCheck(game)) {
-                        // todo: make castle move on board
-                        return true
-                    } else {
-                        return false
-                    }
-                }
 
             } else if (move.isCastlingQueenSide) {
 
@@ -167,6 +143,64 @@ object GameUtils {
     }
 
     private fun isKingInCheck(game: Game): Boolean = try { game.chessBoard.moves.last().isCheck } catch (e: Exception) { false }
+
+    private fun isValidCastling(game: ChessBoard,
+                                move: Move,
+                                isWhiteMove: Boolean = true,
+                                isKingCastle: Boolean = true): Boolean {
+
+        /* RULES OF THE KING SIDE CASTLE
+                *   1. You can not castle if the king has already moved or if the rook in question has moved
+                *   2. You can not castle if while in check.
+                *   3. you can castle with a rook that is under attack at the time and the rook can pass through an attacked square when castling while the king can not.
+                *  */
+
+        val kingsCurrentSpot = game.board.find(Piece.K)
+        if (kingsCurrentSpot == null) {
+            return false
+        }
+
+        // check to make sure king is at initial spot, bishop and knight have moved, and rook is still there
+        if (kingsCurrentSpot == BoardSpot.e1
+            && game.board[BoardSpot.f1] == null
+            && game.board[BoardSpot.g1] == null
+            && game.board[BoardSpot.h1] == Piece.R) {
+            // next make sure the king isn't in check or will be moved to a spot that is being attacked.
+            // todo: need the move stack from a game to see if last move was a check.
+            if (!isKingInCheck(game)) {
+                // todo: make castle move on board
+                return true
+            } else {
+                return false
+            }
+        }
+    }
+
+    private fun isValidWhiteKingSideCastle(game: ChessBoard, move: Move): Boolean {
+        val kingsCurrentSpot = game.whitePieces[Piece.K]?.first() ?: return false
+        if (kingsCurrentSpot != BoardSpot.e1
+            || game.board[BoardSpot.f1] != null
+            || game.board[BoardSpot.g1] != null
+            || game.board[BoardSpot.h1] != Piece.R) return false
+
+        // mock the move and see if the king is now in check. if so return false
+        // todo: stop
+
+        return true
+    }
+    private fun isValidBlackKingSideCastle(game: ChessBoard, move: Move): Boolean {
+        return false
+    }
+    private fun isValidWhiteQueenSideCastle(game: ChessBoard, move: Move): Boolean {
+        return false
+    }
+    private fun isValidBlackQueenSideCastle(game: ChessBoard, move: Move): Boolean {
+        return false
+    }
+
+    private fun doesCastleDangerKing(game: ChessBoard, move: Move): Boolean {
+        return false
+    }
 
     // NOTE: Make sure you aren't passing a draw or checkmate
     private fun willKingBeInCheckWithThisMove(game: Game, move: Move): Boolean {
@@ -187,6 +221,7 @@ object GameUtils {
                 // blacks move
                 if (move.isCastlingKingSide || move.isCastlingQueenSide) {
                     // trying to move the king
+
                 } else {
                     // moving another piece
                 }
