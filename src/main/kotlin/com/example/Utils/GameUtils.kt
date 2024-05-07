@@ -167,13 +167,15 @@ object GameUtils {
             && game.board[BoardSpot.h1] == Piece.R) {
             // next make sure the king isn't in check or will be moved to a spot that is being attacked.
             // todo: need the move stack from a game to see if last move was a check.
-            if (!isKingInCheck(game)) {
+            if (true) {
                 // todo: make castle move on board
                 return true
             } else {
                 return false
             }
         }
+
+        return true
     }
 
     private fun isValidWhiteKingSideCastle(game: ChessBoard, move: Move): Boolean {

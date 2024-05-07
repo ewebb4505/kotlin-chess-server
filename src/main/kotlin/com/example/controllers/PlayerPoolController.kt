@@ -13,6 +13,7 @@ import org.koin.ktor.ext.inject
 
 fun Route.playerPoolController() {
     val userService by inject<UserService>()
+
     webSocket("/players_waiting_for_game") {
         println("Adding user!")
         // 1. on connection send the new user all the players that are in the pool and are ready to play.
@@ -30,7 +31,7 @@ fun Route.playerPoolController() {
                         // add player to pool of players ready to play chess
                         PlayerPoolManager.addPlayer(this, UserId(playerConnection.userId), PlayerPoolStatus.READY_TO_PLAY)
                         println("${playerConnection.userId} with status: ${playerConnection.status} joined!")
-                        send(Gson().toJson(PlayerPoolManager.toDictionary()).toString())
+                        send(Gson().toJson(PlayerPoolManager.toDictionary()))
                     }
 
                     PlayerPoolStatus.REQUESTED_TO_PLAY -> {

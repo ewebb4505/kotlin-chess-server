@@ -31,9 +31,9 @@ object PlayerPoolManager {
         return connection
     }
 
-    fun toDictionary(): Map<UserId, PlayerPoolStatus> {
-        val map = mutableMapOf<UserId, PlayerPoolStatus>()
-        playersWaitingForGameConnection.forEach { map[it.userId] = it.status }
+    fun toDictionary(): Map<String, PlayerPoolStatus> {
+        val map = mutableMapOf<String, PlayerPoolStatus>()
+        playersWaitingForGameConnection.forEach { map[it.userId.id] = it.status }
         return map
     }
 }

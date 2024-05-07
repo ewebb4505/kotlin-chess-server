@@ -7,7 +7,7 @@ import org.koin.ktor.ext.inject
 
 fun Route.gameController() {
     val userService by inject<UserService>()
-    webSocket("/players_waiting_for_game") {
+    webSocket("/players_waiting_for_game_2") {
         val player1 = call.request.queryParameters["player1"]
 
     }

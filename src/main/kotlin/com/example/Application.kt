@@ -3,6 +3,7 @@ package com.example
 import com.example.repos.UserRepo
 import com.example.repos.UserRepoImpl
 import com.example.plugins.*
+import com.example.services.UserService
 import io.ktor.server.application.*
 import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.serialization.kotlinx.json.*
