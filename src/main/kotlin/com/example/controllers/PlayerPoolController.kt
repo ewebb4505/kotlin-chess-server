@@ -13,25 +13,24 @@ import org.koin.ktor.ext.inject
 
 fun Route.playerPoolController() {
     val userService by inject<UserService>()
+    val gson = Gson()
 
     webSocket("/players_waiting_for_game") {
         println("Adding user!")
         // 1. on connection send the new user all the players that are in the pool and are ready to play.
-        send("hello")
-        call.respond("connected")
         for (frame in incoming) {
             frame as? Frame.Text ?: continue
-            println("made it!")
             val receivedText = frame.readText()
-            val playerConnection =  Gson().fromJson(receivedText, PlayerPoolRequest::class.java)
+            val playerConnection =  gson.fromJson(receivedText, PlayerPoolRequest::class.java)
             val userId = UserId(playerConnection.userId)
+
             if (userService.isValidUserId(userId)) {
                 when(playerConnection.status) {
                     PlayerPoolStatus.READY_TO_PLAY -> {
                         // add player to pool of players ready to play chess
                         PlayerPoolManager.addPlayer(this, UserId(playerConnection.userId), PlayerPoolStatus.READY_TO_PLAY)
                         println("${playerConnection.userId} with status: ${playerConnection.status} joined!")
-                        send(Gson().toJson(PlayerPoolManager.toDictionary()))
+                        send(Gson().toJson(PlayerPoolManager.createBroadcast()))
                     }
 
                     PlayerPoolStatus.REQUESTED_TO_PLAY -> {
@@ -55,8 +54,8 @@ fun Route.playerPoolController() {
                             playerRequested.session.send("Requested To Play from ${playerRequesting.userId}!")
                             playerRequesting.session.send("Successful Request to ${playerRequested.userId}")
 
-                            playerRequested.session.send(Gson().toJson(PlayerPoolManager.toDictionary()).toString())
-                            playerRequesting.session.send(Gson().toJson(PlayerPoolManager.toDictionary()).toString())
+                            playerRequested.session.send(gson.toJson(PlayerPoolManager.toDictionary()).toString())
+                            playerRequesting.session.send(gson.toJson(PlayerPoolManager.toDictionary()).toString())
                             // create pending game request
                             val pendingGameRequest = PendingGameRequest(playerRequesting.userId, playerRequested.userId)
                             PendingGamesManager.pendingGames[pendingGameRequest.id] = pendingGameRequest
