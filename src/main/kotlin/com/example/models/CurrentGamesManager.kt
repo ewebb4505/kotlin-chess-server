@@ -9,6 +9,8 @@ object CurrentGamesManager {
     private val currentGames: MutableSet<CurrentGame> = Collections.synchronizedSet<CurrentGame>(LinkedHashSet())
 
     fun findGameId(gameId: String): CurrentGame? = currentGames.find { it.gameId == gameId }
+
+    fun addGame(game: CurrentGame): Boolean = currentGames.add(game)
 }
 
 class CurrentGame(

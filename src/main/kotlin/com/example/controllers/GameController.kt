@@ -1,17 +1,19 @@
 package com.example.controllers
 
 import com.example.Utils.MoveUtils
-import com.example.models.CurrentGamesManager
-import com.example.models.PlayerPoolRequest
-import com.example.models.UserId
+import com.example.models.*
 import com.example.services.UserService
 import com.google.gson.Gson
+import io.ktor.http.*
 import io.ktor.server.routing.*
 import io.ktor.server.websocket.*
 import io.ktor.websocket.*
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import org.koin.ktor.ext.inject
+import io.ktor.server.application.*
+import io.ktor.server.response.*
+import io.ktor.server.routing.*
 
 fun Route.gameController() {
     // val userService by inject<UserService>()
@@ -51,6 +53,46 @@ fun Route.gameController() {
         }
     }
 }
+
+fun Route.games() {
+    val service by inject<UserService>()
+    val playerPool: MutableSet<UserId> = mutableSetOf()
+    route("/play") {
+        get {
+            // validate the userId
+            // if there's a player ready to play in the playerPool create a gameId and send it to this user
+            val userIdStr = call.request.queryParameters["userId"] ?: call.respond(HttpStatusCode.BadRequest, "UserId not found")
+            val userId = UserId(id = userIdStr.toString())
+            if (service.isValidUserId(userId)) {
+                val firstPlayerAvailable: UserId? = try { playerPool.first { it != userId } } catch (e: Exception) { null }
+                if (firstPlayerAvailable != null) {
+                    // create the game and send it to this user
+                    val userGameRequest = CurrentGame(gameId = java.util.UUID.randomUUID().toString(), white = firstPlayerAvailable, black = userId)
+                    CurrentGamesManager.addGame(userGameRequest)
+                    call.respond("""{"gameId":"${userGameRequest.gameId}"}""")
+                } else {
+                    call.respond(HttpStatusCode.BadRequest, "No users are ready to play")
+                }
+            }
+        }
+
+        post {
+            // add the user to the playerPool
+            val userIdStr = call.request.queryParameters["userId"] ?: call.respond(HttpStatusCode.BadRequest, "UserId not found")
+            val userId = UserId(id = userIdStr.toString())
+            if (service.isValidUserId(userId)) {
+                if (playerPool.add(userId)) {
+                    call.respond(HttpStatusCode.Accepted, "User added to pool")
+                } else {
+                    call.respond(HttpStatusCode.NotModified, "UserId already in pool")
+                }
+            } else {
+                call.respond(HttpStatusCode.BadRequest, "UserId not valid")
+            }
+        }
+    }
+}
+
 
 @Serializable
 data class UserGameRequest(val userId: UserId, val status: UserGameRequestStatus, val move: String? = null)
