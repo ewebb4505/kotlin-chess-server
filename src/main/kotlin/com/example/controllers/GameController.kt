@@ -14,13 +14,14 @@ import org.koin.ktor.ext.inject
 import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import kotlinx.coroutines.cancel
 
 fun Route.gameController() {
     // val userService by inject<UserService>()
     val gson = Gson()
 
-    webSocket("/game/{gameId}") {
-        val gameId = call.request.queryParameters["gameId"] ?: return@webSocket send("Can't find Game")
+    webSocket("/game") {
+        val gameId = call.request.queryParameters["gameId"] ?: return@webSocket close(CloseReason(CloseReason.Codes.CANNOT_ACCEPT, "Can't find game"))
         for (frame in incoming) {
             frame as? Frame.Text ?: continue
             CurrentGamesManager.findGameId(gameId)?.let {
@@ -40,8 +41,12 @@ fun Route.gameController() {
                     if (it.setUserConnection(playerConnected.userId)) {
                         if (it.black == playerConnected.userId) {
                             it.setBlackPlayerSession(this)
+                            val response: UserGameResponse = if (!it.whiteIsConnected) UserGameResponse(status = GameStatusResponse.WAITING_FOR_OP) else UserGameResponse(status = GameStatusResponse.PLAYING)
+                            send(gson.toJson(response).toString())
                         } else {
                             it.setWhitePlayerSession(this)
+                            val response: UserGameResponse = if (!it.blackIsConnected) UserGameResponse(status = GameStatusResponse.WAITING_FOR_OP) else UserGameResponse(status = GameStatusResponse.PLAYING)
+                            send(gson.toJson(response).toString())
                         }
                     }
                 } else if (playerConnected.status == UserGameRequestStatus.SENDING_MOVE) {
@@ -69,7 +74,7 @@ fun Route.games() {
                     // create the game and send it to this user
                     val userGameRequest = CurrentGame(gameId = java.util.UUID.randomUUID().toString(), white = firstPlayerAvailable, black = userId)
                     CurrentGamesManager.addGame(userGameRequest)
-                    call.respond("""{"gameId":"${userGameRequest.gameId}"}""")
+                    call.respond("""{"gameId":"${userGameRequest.gameId}", "white":"${userGameRequest.white.id}", "black":"${userGameRequest.black.id}"}""")
                 } else {
                     call.respond(HttpStatusCode.BadRequest, "No users are ready to play")
                 }
@@ -96,6 +101,12 @@ fun Route.games() {
 
 @Serializable
 data class UserGameRequest(val userId: UserId, val status: UserGameRequestStatus, val move: String? = null)
+
+@Serializable
+data class UserGameResponse(val status: GameStatusResponse,
+                            val whiteUserId: UserId? = null,
+                            val blackUserId: UserId? = null,
+                            val move: String? = null)
 
 @Serializable
 enum class GameStatusResponse {
